@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 
 	"bitbucket.org/enlab/peak/models"
-	"bitbucket.org/enlab/peak/controllers/rest"
+	"bitbucket.org/enlab/peak/controllers/new_rest"
 	"bitbucket.org/enlab/peak/controllers/datastore"
 	"bitbucket.org/enlab/peak/utils"
 	"github.com/namsral/flag"
@@ -113,6 +113,8 @@ func main() {
 
 		utils.PrintJson(devinfo, true)
 	} else {
-		rest.NewRestService(Listen, store, Catalog).StartListen()
+		//rest.NewRestService(Listen, store, Catalog).StartListen()
+		new_rest.NewRestService(conf)
+
   }
 }

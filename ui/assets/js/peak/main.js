@@ -43,13 +43,14 @@ var add_mountain = {
     name: "type_link",
   }, {
     view: "button",
-    value: "Submit",
+    value: "Add",
     width: 150,
     align: "center",
     click:function(){
       if (this.getParentView().validate()){ //validate form
         var t = $$("addMountain").getValues();
-        webix.ajax().put("/api/v1/mountains", JSON.stringify(t), function(text, xml, xhr){
+        webix.ajax().headers({ "Content-type":"application/json" }).put("/api/v1/mountains", t, 
+        function(text, xml, xhr){
           console.log(text);
         });
         this.getTopParentView().hide(); //hide window
@@ -66,7 +67,20 @@ webix.ui({
   width:300,
   position:"center",
   modal:true,
-  head:"Add mountain",
+  move: true,
+  head: {
+     view: "toolbar", margin: -4, cols: [
+         { view: "label", label: "New Mountain" },
+         {
+             view: "icon", icon: "question-circle",
+             click: "webix.message('About pressed')"
+         },
+         {
+             view: "icon", icon: "times-circle",
+             click: '$$("add_mountain_window").hide();'
+         }
+     ]
+  },
   body:add_mountain
 });
 
@@ -85,8 +99,7 @@ var header = {
   elements:[
     { view:"label",  label: "Peak Simple Client"},
     { view:"text", id:"grouplist_input", placeholder:"Поиск ..."},
-    { view:"button", width:50, value: 'Add', click:function(){ showForm("add_mountain_window") }
-    },
+    { view:"button", width:50, value: 'Add', click:function(){ showForm("add_mountain_window") }},
   ]
 };
 
@@ -96,16 +109,28 @@ var mountains= { id:"mountains", css:"preview-box", rows:[
     view:"datatable",
     columns:[
       { id:"id", header:"", css:{"text-align":"center"}, width:50, hidden: true},
-      { id:"title",	header:"Name", 	width:200, fillspace: 4 },
+      { id:"title",	header:"Name", 	width:200, fillspace: 6 },
       { id:"latitude",	header:"Latitude", 	width:200, fillspace: 4 },
       { id:"longtitude",	header:"Longtitude", 	width:200, fillspace: 4 },
       { id:"height",	header:"Height", 	width:200, fillspace: 4 },
       { id:"web_id",	header:"WebID", 	width:200, fillspace: 4 },
       { id:"type_link",	header:"TypeLink", 	width:200, fillspace: 4 },
+      { id:"trash", header:"", template:"{common.trashIcon()}", fillspace: 1}
     ],
     datafetch: 20,
     loadahead: 20,
     url:"/api/v1/mountains",
+    onClick:{
+      "fa-trash":function(event, id, node){
+        webix.message("Delete row: "+id);
+        this.remove(id);
+        webix.ajax().headers({ "content-type":"application/json" }).del("/api/v1/mountains/"+id, {}, function(text, xml, xhr){
+          console.log(text)
+        });
+        return false; // here it blocks the default behavior
+      }
+    },
+    on: {
       onDataRequest: function (start, count) {
         onBeforeFilterCount++;
         webix.ajax().get("/api/v1/mountains?page="+onBeforeFilterCount+"&per_page="+count).then(function(data){
@@ -114,7 +139,8 @@ var mountains= { id:"mountains", css:"preview-box", rows:[
           this.parse(data.json());
         })
         return false;
-      }
+      },
+    }
   }
 ]}
 
